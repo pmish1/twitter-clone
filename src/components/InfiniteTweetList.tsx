@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { VscHeart, VscHeartFilled } from "react-icons/vsc";
 import { IconHoverEffect } from "./IconHoverEffect";
 import { api } from "~/utils/api";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 type Tweet = {
   id: string;
@@ -30,7 +31,7 @@ export function InfiniteTweetList({
   fetchNewTweets,
   hasMore,
 }: InfiniteTweetListProps) {
-  if (isLoading) return <h1>Loading...</h1>;
+  if (isLoading) return <LoadingSpinner />;
   if (isError) return <h1>Error</h1>;
   if (!tweets) return null;
 
@@ -45,8 +46,8 @@ export function InfiniteTweetList({
       <InfiniteScroll
         dataLength={tweets.length}
         next={fetchNewTweets}
-        hasMore={hasMore}
-        loader={"Loading..."}
+        hasMore={hasMore || false}
+        loader={<LoadingSpinner />}
       >
         {tweets.map((tweet) => {
           return <TweetCard key={tweet.id} {...tweet} />;
@@ -68,7 +69,38 @@ function TweetCard({
   likeCount,
   likedByMe,
 }: Tweet) {
-  const toggleLike = api.tweet.toggleLike.useMutation();
+  const trpcUtils = api.useContext();
+  const toggleLike = api.tweet.toggleLike.useMutation({
+    onSuccess: ({ addedLike }) => {
+      const updateData: Parameters<
+        typeof trpcUtils.tweet.infiniteFeed.setInfiniteData
+      >[1] = (oldData) => {
+        if (!oldData) return;
+
+        const countModifier = addedLike ? 1 : -1;
+
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => {
+            return {
+              ...page,
+              tweets: page.tweets.map((tweet) => {
+                if (tweet.id === id) {
+                  return {
+                    ...tweet,
+                    likeCount: tweet.likeCount + countModifier,
+                    likedByMe: addedLike,
+                  };
+                }
+                return tweet;
+              }),
+            };
+          }),
+        };
+      };
+      trpcUtils.tweet.infiniteFeed.setInfiniteData({}, updateData);
+    },
+  });
   function handleToggleLike() {
     toggleLike.mutate({ id });
   }
