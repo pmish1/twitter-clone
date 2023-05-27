@@ -1,10 +1,10 @@
 # Twitter
 
-## Full-stack web application utilizing the T3 stack (Next.js, TypeScript, Prisma, TailwindCSS, NextAuth.js and tRPC). Functionality for users to securely login/logout, interact with other users through ‘likes’ and ‘follows’ as well as create and publish tweets.
-
 ### Avaliable at: https://twitter-clone-beta-virid.vercel.app/
 
 _Note: Discord account needed to login_
+
+Full-stack web application utilizing the T3 stack (Next.js, TypeScript, Prisma, TailwindCSS, NextAuth.js and tRPC). Functionality for users to securely login/logout, interact with other users through ‘likes’ and ‘follows’ as well as create and publish tweets.
 
 **Front-end:**
 
